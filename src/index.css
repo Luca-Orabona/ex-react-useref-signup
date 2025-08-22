@@ -1,0 +1,13 @@
+body {
+    padding: 20px;
+}
+
+input.form-control::placeholder {
+  color: #b1b1b1 !important;
+  opacity: 1 !important;
+}
+
+
+
+
+
