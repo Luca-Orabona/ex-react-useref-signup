@@ -1,17 +1,46 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+const letters = "abcdefghijklmnopqrstuvwxyz";
+const numbers = "0123456789";
+const symbols = "!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~";
 
 function App() {
 
   const [formData, setFormData] = useState(
     {
       name: "",
-      usurname: "",
+      username: "",
       password: "",
       specialization: "",
       yearsExperience: 0,
       description: ""
     }
   )
+
+  const isUsernameValid = useMemo(() => {
+    return (
+      formData.username.split("").every(char =>
+        letters.includes(char.toLowerCase()) ||
+        numbers.includes(char)) &&
+      formData.username.trim().length >= 6
+    )
+  }, [formData.username])
+
+  const isPasswordValid = useMemo(() => {
+    return (
+      formData.password.split("").some(char => letters.includes(char.toLowerCase())) &&
+      formData.password.split("").some(char => numbers.includes(char.toLowerCase())) &&
+      formData.password.split("").some(char => symbols.includes(char.toLowerCase())) &&
+      formData.password.trim().length >= 8
+    )
+  }, [formData.password])
+
+  const isDescriptionValid = useMemo(() => {
+    return (
+      formData.description.trim().length >= 100 &&
+      formData.description.trim().length < 1000
+    )
+  }, [formData.description])
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,7 +52,7 @@ function App() {
 
     const cleanedData = {
       name: formData.name.trim(),
-      usurname: formData.usurname.trim(),
+      username: formData.username.trim(),
       password: formData.password.trim(),
       specialization: formData.specialization.trim(),
       yearsExperience: formData.yearsExperience,
@@ -32,11 +61,14 @@ function App() {
 
     if (
       !cleanedData.name ||
-      !cleanedData.usurname ||
+      !cleanedData.username ||
       !cleanedData.password ||
       !cleanedData.specialization ||
       cleanedData.yearsExperience < 0 ||
-      !cleanedData.description
+      !cleanedData.description ||
+      !isUsernameValid ||
+      !isPasswordValid ||
+      !isDescriptionValid
     ) {
       console.error("Tutti i campi devono essere compilati");
       return
@@ -44,7 +76,7 @@ function App() {
     console.log(`campi inviati con successo`, cleanedData);
     setFormData({
       name: "",
-      usurname: "",
+      username: "",
       password: "",
       specialization: "",
       yearsExperience: 0,
@@ -78,19 +110,23 @@ function App() {
           />
         </div>
 
-        {/* USURNAME */}
+        {/* USERNAME */}
         <div className="mb-3">
-          <label htmlFor="formUsurname" className="form-label">Usurname</label>
+          <label htmlFor="formUsername" className="form-label">Username</label>
           <input
             type="text"
             className="form-control"
-            id="exampleForformUsurnamemControlInput1"
+            id="formUsername"
             placeholder="Wraite your usurname..."
             autoComplete="family-name"
-            name="usurname"
-            value={formData.usurname}
+            name="username"
+            value={formData.username}
             onChange={handleChange}
           />
+          {formData.username.trim() &&
+            (<p className={!isUsernameValid ? "text-danger" : "text-success"}>
+              {isUsernameValid ? "Username valid" : "Deve avere almeno 6 caratteri alfanumerici"}
+            </p>)}
         </div>
 
         {/* PASSWORD */}
@@ -106,6 +142,10 @@ function App() {
             value={formData.password}
             onChange={handleChange}
           />
+          {formData.password.trim() &&
+            (<p className={!isPasswordValid ? "text-danger" : "text-success"}>
+              {isPasswordValid ? "Password valid" : "Deve contenere almeno 8 caratteri, 1 lettera, 1 numero e 1 simbolo"}
+            </p>)}
         </div>
 
         {/* SPECIALIZATION */}
@@ -152,6 +192,10 @@ function App() {
             onChange={handleChange}
           >
           </textarea>
+          {formData.description.trim() &&
+            (<p className={!isDescriptionValid ? "text-danger" : "text-success"}>
+              {isDescriptionValid ? "Description valid" : `Deve contenere tra 100 e 1000 caratteri (${formData.description.length})`}
+            </p>)}
         </div>
 
         <div className="mb-3">
