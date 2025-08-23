@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 const letters = "abcdefghijklmnopqrstuvwxyz";
 const numbers = "0123456789";
@@ -6,16 +6,19 @@ const symbols = "!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~";
 
 function App() {
 
+  const nameRef = useRef();
+  const specializationRef = useRef();
+  const yearsExperienceRef = useRef();
+
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState(
     {
-      name: "",
       username: "",
       password: "",
-      specialization: "",
-      yearsExperience: 0,
       description: ""
     }
   )
+
 
   const isUsernameValid = useMemo(() => {
     return (
@@ -29,15 +32,15 @@ function App() {
   const isPasswordValid = useMemo(() => {
     return (
       formData.password.split("").some(char => letters.includes(char.toLowerCase())) &&
-      formData.password.split("").some(char => numbers.includes(char.toLowerCase())) &&
-      formData.password.split("").some(char => symbols.includes(char.toLowerCase())) &&
+      formData.password.split("").some(char => numbers.includes(char)) &&
+      formData.password.split("").some(char => symbols.includes(char)) &&
       formData.password.trim().length >= 8
     )
   }, [formData.password])
 
   const isDescriptionValid = useMemo(() => {
     return (
-      formData.description.trim().length >= 100 &&
+      formData.description.trim().length >= 5 &&
       formData.description.trim().length < 1000
     )
   }, [formData.description])
@@ -51,12 +54,12 @@ function App() {
     e.preventDefault()
 
     const cleanedData = {
-      name: formData.name.trim(),
+      name: nameRef.current.value.trim(),
+      specialization: specializationRef.current.value.trim(),
+      yearsExperience: yearsExperienceRef.current.value,
       username: formData.username.trim(),
       password: formData.password.trim(),
-      specialization: formData.specialization.trim(),
-      yearsExperience: formData.yearsExperience,
-      description: formData.description.trim(),
+      description: formData.description.trim()
     };
 
     if (
@@ -71,19 +74,24 @@ function App() {
       !isDescriptionValid
     ) {
       console.error("Tutti i campi devono essere compilati");
-      return
+      return;
     }
-    console.log(`campi inviati con successo`, cleanedData);
+
+    console.log("Campi inviati con successo", cleanedData);
+
+    // reset refs manualmente
+    nameRef.current.value = "";
+    specializationRef.current.value = "";
+    yearsExperienceRef.current.value = "";
+
+    // reset campi controllati
     setFormData({
-      name: "",
       username: "",
       password: "",
-      specialization: "",
-      yearsExperience: 0,
       description: ""
-    })
-
+    });
   };
+
 
   console.log(formData);
 
@@ -105,8 +113,7 @@ function App() {
             placeholder="Wraite your name..."
             autoComplete="given-name"
             name="name"
-            value={formData.name}
-            onChange={handleChange}
+            ref={nameRef}
           />
         </div>
 
@@ -130,18 +137,30 @@ function App() {
         </div>
 
         {/* PASSWORD */}
-        <div className="mb-3">
+        <div className="mb-3 position-relative">
           <label htmlFor="formPassword" className="form-label">Password</label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             className="form-control"
             id="formPassword"
             placeholder="Wraite your password..."
-            autoComplete="new-password"
+            //autoComplete="new-password"
             name="password"
             value={formData.password}
             onChange={handleChange}
           />
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            style={{
+              position: "absolute",
+              right: "10px",
+              top: "38px",
+              cursor: "pointer",
+              color: "#6c757d",
+            }}
+          >
+            <i className={showPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
+          </span>
           {formData.password.trim() &&
             (<p className={!isPasswordValid ? "text-danger" : "text-success"}>
               {isPasswordValid ? "Password valid" : "Deve contenere almeno 8 caratteri, 1 lettera, 1 numero e 1 simbolo"}
@@ -155,8 +174,7 @@ function App() {
             className="form-select"
             id="formSpecialization"
             name="specialization"
-            value={formData.specialization}
-            onChange={handleChange}
+            ref={specializationRef}
           >
             <option value="">Select field</option>
             <option value="Full Stack">Full Stack</option>
@@ -174,8 +192,7 @@ function App() {
             className="form-control"
             id="formYearsExperience"
             name="yearsExperience"
-            value={formData.yearsExperience}
-            onChange={handleChange}
+            ref={yearsExperienceRef}
           />
         </div>
 
